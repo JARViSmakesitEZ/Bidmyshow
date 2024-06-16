@@ -8,51 +8,100 @@ generator client {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  name      String
-  password  String
-  balance   Int
-  email     String
-  bookings  Booking[]
-  bids      Bid[]
+  id              Int      @id @default(autoincrement())
+  name            String
+  password        String
+  balance         Int
+  email           String
+  bookings        Booking[] @relation("UserBookings")
+  maxBidBookings  Bid[]     @relation("UserBids")
+  interests       UserInterests[]
 }
 
 model Theatre {
-  id                    Int      @id @default(autoincrement())
-  name                  String
-  password              String
-  location              String
-  shows                 Show[]
+  id          Int      @id @default(autoincrement())
+  name        String
+  password    String
+  location    String
+  shows       Show[]   @relation("TheatreShows")
 }
 
 model Show {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   name         String
+  description  String
   start_time   DateTime
   end_time     DateTime
   theatre_id   Int
   total_seats  Int
   ticket_price Int
-  booked_seats Int?     @default(0)
-  Theatre      Theatre  @relation(fields: [theatre_id], references: [id])
-  bookings     Booking[]
+  booked_seats Int?      @default(0)
+  Theatre      Theatre   @relation(fields: [theatre_id], references: [id], name: "TheatreShows")
+  bookings     Booking[] @relation("ShowBooked")
+
+  // Define the relation to the join table
+  interests    ShowInterests[]
 }
 
+model ShowInterests {
+  showId     Int
+  interestId Int
+
+  // Define the relations to the show and interest models
+  show       Show     @relation(fields: [showId], references: [id])
+  interest   Interest @relation(fields: [interestId], references: [id])
+
+  // Define the composite primary key
+  @@id([showId, interestId])
+}
+
+
+
 model Booking {
-  id         Int      @id @default(autoincrement())
-  Show       Show     @relation(fields: [show_id], references: [id])
-  User       User     @relation(fields: [user_id], references: [id])
-  show_id    Int
-  user_id    Int
-  bidding    Boolean  @default(false)
-  bids       Bid[]
-  
+  id                 Int      @id @default(autoincrement())
+  show_id            Int
+  user_id            Int
+  bidding            Boolean? @default(false)
+  amount             Int
+
+  Show               Show     @relation(fields: [show_id], references: [id], name: "ShowBooked")
+  User               User     @relation(fields: [user_id], references: [id], name: "UserBookings")
+  Bids               Bid[]    @relation("BookingBids")
+
+  @@index([show_id])
+  @@index([user_id])
 }
 
 model Bid {
-  id         Int      @id @default(autoincrement())
-  bidder_id  Int
-  booking_id Int
-  Bidder     User     @relation(fields: [bidder_id], references: [id])
-  Booking    Booking  @relation(fields: [booking_id], references: [id])
+  id              Int      @id @default(autoincrement())
+  booking_id      Int
+  bidder_id       Int
+  amount          Int
+
+  Booking         Booking  @relation(fields: [booking_id], references: [id], name:"BookingBids")
+  User            User     @relation(fields: [bidder_id], references: [id], name:"UserBids")
 }
+
+model UserInterests {
+  userId    Int
+  interestId Int
+
+  // Define the relations to the user and interest models
+  user     User     @relation(fields: [userId], references: [id])
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  // Define the composite primary key
+  @@id([userId, interestId])
+}
+
+model Interest {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+
+  // Define the inverse relation to the join table
+  shows ShowInterests[]
+  users UserInterests[]
+}
+
+
+

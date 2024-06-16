@@ -40,7 +40,7 @@ router.post("/booking", async (req, res) => {
   //book seat
   try {
     const booking = await prisma.booking.create({
-      data: body,
+      data: { ...body, amount: show.ticket_price },
     });
 
     //update booked seats
