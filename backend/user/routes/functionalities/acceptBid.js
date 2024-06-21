@@ -76,6 +76,7 @@ router.post("/acceptbid", async (req, res) => {
       data: {
         user_id: latestBidUserId,
         amount: latestBidAmount,
+        bidding: false,
       },
     });
 

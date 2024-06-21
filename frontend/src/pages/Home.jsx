@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { ShowCard } from "../components/ShowCard"; // Ensure the correct import path
 import { Navbar } from "../components/Navbar";
+import { Show } from "./Show";
 
 export const Home = () => {
   const [response, setResponse] = useState({ shows: [] });
@@ -38,7 +39,8 @@ export const Home = () => {
         {response.shows && response.shows.length > 0 ? (
           response.shows.map((s, index) => (
             <ShowCard
-              key={index}
+              key={s.id}
+              id={s.id}
               name={s.name}
               description={s.description}
               ticket_price={s.ticket_price}

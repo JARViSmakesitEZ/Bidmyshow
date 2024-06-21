@@ -34,7 +34,9 @@ router.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.json({ token });
+    console.log(user);
+
+    res.json({ ...user, token });
   } catch (error) {
     console.error("Error during authentication:", error);
     res.status(500).json({ message: "Internal server error" });

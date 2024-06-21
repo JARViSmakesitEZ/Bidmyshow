@@ -1,10 +1,19 @@
 import React, { useState } from "react";
+import { navLinkAtom } from "../store/atoms";
+import { useRecoilState } from "recoil";
+import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
-  const [active, setActive] = useState("Home");
+  const [active, setActive] = useRecoilState(navLinkAtom);
+  const navigate = useNavigate();
 
   const handleClick = (page) => {
     setActive(page);
+    if (page === "Home") navigate("/home");
+    else if (page === "Bookings") navigate("/bookings");
+    else if (page === "Bids") navigate("/bids");
+    else if (page === "Account") navigate("/profile");
+    else if (page === "BiddingArena") navigate("/biddingarena");
   };
 
   return (
@@ -20,7 +29,7 @@ export const Navbar = () => {
             alt="Flowbite Logo"
           />
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-            Flowbite
+            BidMyShow
           </span>
         </a>
         <div className="flex md:order-2">
@@ -144,27 +153,54 @@ export const Navbar = () => {
             <li>
               <a
                 href="#"
-                onClick={() => handleClick("About")}
+                onClick={() => handleClick("Bookings")}
                 className={`block py-2 px-3 rounded md:p-0 ${
-                  active === "About"
+                  active === "Bookings"
                     ? "text-blue-700"
                     : "text-gray-900 dark:text-white"
                 }`}
               >
-                About
+                Bookings
               </a>
             </li>
             <li>
               <a
                 href="#"
-                onClick={() => handleClick("Services")}
+                onClick={() => handleClick("Bids")}
                 className={`block py-2 px-3 rounded md:p-0 ${
-                  active === "Services"
+                  active === "Bids"
                     ? "text-blue-700"
                     : "text-gray-900 dark:text-white"
                 }`}
               >
-                Services
+                Bids
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="#"
+                onClick={() => handleClick("BiddingArena")}
+                className={`block py-2 px-3 rounded md:p-0 ${
+                  active === "BiddingArena"
+                    ? "text-blue-700"
+                    : "text-gray-900 dark:text-white"
+                }`}
+              >
+                BiddingArena
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                onClick={() => handleClick("Account")}
+                className={`block py-2 px-3 rounded md:p-0 ${
+                  active === "Account"
+                    ? "text-blue-700"
+                    : "text-gray-900 dark:text-white"
+                }`}
+              >
+                Account
               </a>
             </li>
           </ul>
