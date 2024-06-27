@@ -9,6 +9,7 @@ console.log(secretKey);
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body);
 
   if (!email || !password) {
     return res
@@ -22,6 +23,7 @@ router.post("/login", async (req, res) => {
         email: email,
       },
     });
+    console.log(user);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -36,7 +38,33 @@ router.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.json({ ...user, token });
+    let interestsRes;
+    try {
+      interestsRes = await prisma.userInterests.findMany({
+        where: {
+          userId: user.id,
+        },
+        select: {
+          interest: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+    } catch (err) {
+      console.error("Error fetching user interests:", err);
+      return res
+        .status(500)
+        .json({ message: "Error fetching user interests." });
+    }
+
+    const interests = interestsRes.map((i) => {
+      return { id: i.interest.id, name: i.interest.name };
+    });
+
+    res.json({ ...user, token, interests });
   } catch (error) {
     console.error("Error during authentication:", error);
     res.status(500).json({ message: "Internal server error" });

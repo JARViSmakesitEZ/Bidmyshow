@@ -72,14 +72,21 @@ model Booking {
   @@index([user_id])
 }
 
+enum BidStatus {
+  pending
+  accepted
+  captured
+}
+
 model Bid {
-  id              Int      @id @default(autoincrement())
+  id              Int        @id @default(autoincrement())
   booking_id      Int
   bidder_id       Int
   amount          Int
+  status          BidStatus  @default(pending)
 
-  Booking         Booking  @relation(fields: [booking_id], references: [id], name:"BookingBids")
-  User            User     @relation(fields: [bidder_id], references: [id], name:"UserBids")
+  Booking         Booking    @relation(fields: [booking_id], references: [id], name:"BookingBids")
+  User            User       @relation(fields: [bidder_id], references: [id], name:"UserBids")
 }
 
 model UserInterests {

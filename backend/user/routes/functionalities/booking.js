@@ -31,8 +31,6 @@ router.get("/booking/:id", async (req, res) => {
                 where: { booking_id: booking.id },
               });
 
-              console.log("Bids for Booking ID:", booking.id, bids);
-
               if (bids.length === 0) {
                 return {
                   ...booking,
@@ -40,6 +38,8 @@ router.get("/booking/:id", async (req, res) => {
                   highestBidder: null,
                 };
               }
+
+              bids.sort((a, b) => a.id - b.id);
 
               const latestBid = bids[bids.length - 1];
 
@@ -93,70 +93,51 @@ router.post("/booking", async (req, res) => {
   let show = null;
   let user = null;
 
-  //check if seat available
   try {
-    show = await prisma.show.findFirst({
-      where: { id: showId },
-    });
-    if (show.booked_seats === show.total_seats) {
-      res.send("No seats left.");
-    }
-  } catch (err) {
-    res.send("error fetching the show details");
-  }
+    const result = await prisma.$transaction(async (prisma) => {
+      // Check if seat available
+      show = await prisma.show.findFirst({
+        where: { id: showId },
+      });
+      if (show.booked_seats === show.total_seats) {
+        throw new Error("No seats left.");
+      }
 
-  //check if enough balance
-  try {
-    user = await prisma.user.findFirst({
-      where: { id: userId },
-    });
-    console.log(user);
-    console.log(show);
-    if (user.balance < show.ticket_price) {
-      res.send("Not Enough Balance");
-    }
-  } catch (error) {
-    res.send("error fetching user details");
-    console.log(error);
-  }
+      // Check if enough balance
+      user = await prisma.user.findFirst({
+        where: { id: userId },
+      });
+      if (user.balance < show.ticket_price) {
+        throw new Error("Not Enough Balance");
+      }
 
-  //book seat
-  try {
-    const booking = await prisma.booking.create({
-      data: { ...body, amount: show.ticket_price },
-    });
+      // Book seat
+      const booking = await prisma.booking.create({
+        data: { ...body, amount: show.ticket_price },
+      });
 
-    //update booked seats
-    const booked_seats = show.booked_seats;
-    const updated_booked_seats = booked_seats + 1;
-    await prisma.show.update({
-      where: {
-        id: showId,
-      },
-      data: {
-        booked_seats: updated_booked_seats,
-      },
-    });
+      // Update booked seats
+      const updated_booked_seats = show.booked_seats + 1;
+      await prisma.show.update({
+        where: { id: showId },
+        data: { booked_seats: updated_booked_seats },
+      });
 
-    //deduct amount from the user balance
-    const userBalance = user.balance;
-    const updated_userBalance = userBalance - show.ticket_price;
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        balance: updated_userBalance,
-      },
+      // Deduct amount from the user balance
+      const updated_userBalance = user.balance - show.ticket_price;
+      await prisma.user.update({
+        where: { id: userId },
+        data: { balance: updated_userBalance },
+      });
+
+      return booking;
     });
 
     console.log("New Booking registered.");
     res.status(200).send("Booking registered successfully");
   } catch (error) {
-    console.error("Error registering Booking:", error);
-
-    // Respond with an error message
-    res.status(500).send("Error registering Booking");
+    console.error("Error registering Booking:", error.message);
+    res.status(500).send(error.message);
   }
 });
 

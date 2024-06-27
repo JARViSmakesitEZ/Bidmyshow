@@ -53,7 +53,7 @@ router.post("/acceptbid", async (req, res) => {
         booking_id: bookingId,
       },
     });
-    console.log(bids);
+    bids.sort((a, b) => a.id - b.id);
     if (bids.length === 0) {
       res.send("no bids on this booking");
       return;
@@ -69,6 +69,21 @@ router.post("/acceptbid", async (req, res) => {
     latestBid = bids[bids.length - 1];
     const latestBidUserId = latestBid.bidder_id;
     const latestBidAmount = latestBid.amount;
+
+    //update the bid status
+    try {
+      await prisma.bid.update({
+        where: {
+          id: latestBid.id,
+        },
+        data: {
+          status: "accepted",
+        },
+      });
+    } catch (err) {
+      res.send("error updating the highest bid status.");
+      return;
+    }
 
     //update the booking details
     await prisma.booking.update({

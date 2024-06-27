@@ -25,7 +25,12 @@ export const navLinkAtom = atom({
   default: "Home",
 });
 
-export const showDetailAtom = atom({
+export const showsDetailAtom = atom({
   key: "showDetail",
-  default: 0,
+  default: {},
+});
+
+export const highlightedShowDetailAtom = atom({
+  key: "highlightedShowDetail",
+  default: {},
 });

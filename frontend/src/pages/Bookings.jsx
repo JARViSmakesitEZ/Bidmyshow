@@ -43,7 +43,6 @@ const Bookings = () => {
         user_id: userDetails.id,
         booking_id: bookingId,
       });
-      console.log(response);
       // Initialize the bidding status state
       const initialBiddingStatus = response.data.reduce((acc, booking) => {
         acc[booking.id] = booking.bidding;
@@ -66,7 +65,6 @@ const Bookings = () => {
           booking_id: bookingId,
         }
       );
-      console.log(response);
       // Initialize the bidding status state
       setBookingStatus("sold");
       navigate("/bookings");
@@ -76,6 +74,8 @@ const Bookings = () => {
     setBiddingStatus({ ...biddingStatus, [bookingId]: true });
   };
 
+  console.log(bookingsData);
+
   return (
     <div>
       <Navbar />
@@ -83,7 +83,7 @@ const Bookings = () => {
         <div className="max-w-4xl mx-auto mt-10 space-y-6">
           {loading ? (
             <Skeleton />
-          ) : (
+          ) : bookingsData.length > 0 ? (
             bookingsData.map((booking) => (
               <div
                 key={booking.id}
@@ -97,15 +97,13 @@ const Bookings = () => {
                         : "text-black"
                     }`}
                   >
-                    {biddingStatus[booking.id]
-                      ? "Up for Bidding"
-                      : "Not for Bidding"}
+                    {biddingStatus[booking.id] ? "Up for Bidding" : ""}
                   </span>
                   {biddingStatus[booking.id] && bookingStatus !== "bidding" ? (
                     <div className="text-sm text-gray-700">
                       {booking.highestBidder ? (
                         <>
-                          Highest Bidder: {booking.highestBidder.name} (
+                          Highest Bidder: {booking.highestBidder.name} ( ₹
                           {booking.highestBidder.amount})
                           <button
                             className="ml-4 bg-slate-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
@@ -138,6 +136,15 @@ const Bookings = () => {
                 )}
               </div>
             ))
+          ) : (
+            <div className="text-center mt-20">
+              <div className="text-2xl font-semibold text-gray-800">
+                No Bookings Found
+              </div>
+              <div className="text-gray-600">
+                You have no bookings at the moment. Please check back later.
+              </div>
+            </div>
           )}
         </div>
       </div>

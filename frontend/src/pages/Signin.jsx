@@ -24,8 +24,7 @@ export const Signin = () => {
       setUser(response.data);
       console.log(response.data);
       alert("Signin successful");
-      // navigate("/home");
-      navigate("/bookings");
+      navigate("/home");
     } catch (err) {
       // alert("error signing in the user");
       alert(err);
@@ -79,7 +78,7 @@ export const Signin = () => {
             </div>
           </div>
           <button
-            className="inline-block w-full py-4 px-6 mb-6 text-center text-lg leading-6 text-white font-extrabold bg-indigo-800 hover:bg-indigo-900 border-3 border-indigo-900 shadow rounded transition duration-200"
+            className="inline-block w-full py-4 px-6 mb-6 text-center text-lg leading-6 text-white font-extrabold bg-slate-700 hover:bg-slate-900 border-3 border-indigo-900 shadow rounded transition duration-200"
             onClick={(e) => signinUser(e)}
           >
             {" "}

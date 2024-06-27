@@ -1,53 +1,112 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { ShowCard } from "../components/ShowCard"; // Ensure the correct import path
+import { ShowCard } from "../components/ShowCard";
 import { Navbar } from "../components/Navbar";
-import { Show } from "./Show";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { userDetailsAtom, showsDetailAtom } from "../store/atoms";
+import { Skeleton } from "../components/Skeleton";
 
 export const Home = () => {
-  const [response, setResponse] = useState({ shows: [] });
+  const [response, setResponse] = useState({});
+  const [shows, setShows] = useState({ personalized: [], other: [] });
+  const [loading, setLoading] = useState(true);
+  const userDetails = useRecoilValue(userDetailsAtom);
+  const setShowsDetails = useSetRecoilState(showsDetailAtom);
+  const temp = useRecoilValue(showsDetailAtom);
+
+  async function saveShowDetails(shows) {
+    shows.map((s) => {
+      setShowsDetails((showDetails) => {
+        return { ...showDetails, [s.id]: s }; // Ensure to return a new object reference
+      });
+    });
+  }
+
+  function splitShows(shows) {
+    const personalized = [];
+    const other = [];
+    const userInterests = userDetails.interests.map(
+      (interest) => interest.name
+    );
+
+    for (const show of shows) {
+      let flag = false;
+      for (const interest of userInterests) {
+        if (show.interests.includes(interest)) {
+          personalized.push(show);
+          flag = true;
+          break;
+        }
+      }
+      if (!flag) {
+        other.push(show);
+      }
+    }
+
+    setShows({ personalized, other });
+  }
 
   useEffect(() => {
-    async function send() {
+    async function fetchData() {
       try {
         const token = localStorage.getItem("bidMyShowToken");
         if (!token) {
           throw new Error("No token found");
         }
 
-        console.log(token); // This will log the token to the console
         const res = await axios.get("http://localhost:3000/user/home", {
           headers: {
-            Authorization: `Bearer ${token.split(" ")[1]}`, // Extract the actual token
+            Authorization: `Bearer ${token.split(" ")[1]}`,
           },
         });
 
         setResponse(res.data);
-        console.log("User home data:", res.data);
+        splitShows(res.data.shows);
+        await saveShowDetails(res.data.shows);
       } catch (error) {
         console.error("Error fetching user home data:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
-    send();
-  }, []); // Empty dependency array ensures this runs only once when the component mounts
+    fetchData();
+  }, []);
 
   return (
     <div>
       <Navbar />
-      <div className="flex">
-        {response.shows && response.shows.length > 0 ? (
-          response.shows.map((s, index) => (
-            <ShowCard
-              key={s.id}
-              id={s.id}
-              name={s.name}
-              description={s.description}
-              ticket_price={s.ticket_price}
-            />
-          ))
+      <div className="container mx-auto p-4">
+        {loading ? (
+          <div className="flex justify-center items-center h-screen">
+            <Skeleton />
+          </div>
         ) : (
-          <p>No shows available</p>
+          <>
+            <div className="section">
+              <h2 className="text-2xl font-bold mb-4">Picked For You</h2>
+              <div className="flex flex-wrap">
+                {response.shows && response.shows.length > 0 ? (
+                  shows.personalized.map((s) => (
+                    <ShowCard key={s.id} id={s.id} />
+                  ))
+                ) : (
+                  <p>No shows available</p>
+                )}
+              </div>
+            </div>
+
+            <div className="section mt-8">
+              <h2 className="text-2xl font-bold mb-4">Other Shows</h2>
+              <div className="flex flex-wrap">
+                {shows.other && shows.other.length > 0 ? (
+                  shows.other.map((s) => <ShowCard key={s.id} id={s.id} />)
+                ) : (
+                  <p>No shows available</p>
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

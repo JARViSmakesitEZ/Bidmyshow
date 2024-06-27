@@ -10,6 +10,7 @@ router.post("/placebid", async (req, res) => {
   const amount = body.amount;
   let bidder = null;
   let booking = null;
+  let bids = null;
 
   //check if the booking is up for bidding
   try {
@@ -26,7 +27,7 @@ router.post("/placebid", async (req, res) => {
     res.send("error fetching booking details");
     return;
   }
-  console.log("booking is up for bidding");
+  console.log(amount);
 
   //check if the amount the bidder is bidding is greater than the amount paid for booking
   if (booking.amount >= amount) {
@@ -53,11 +54,12 @@ router.post("/placebid", async (req, res) => {
 
   //check if the current max bid is lesser than the bidding amount
   try {
-    const bids = await prisma.bid.findMany({
+    bids = await prisma.bid.findMany({
       where: {
         booking_id: bookingId,
       },
     });
+    bids.sort((a, b) => a.id - b.id);
     if (bids.length > 0 && bids[bids.length - 1].amount >= amount) {
       res.send("The amount must be greater than the current max bid amount");
       return;
@@ -91,6 +93,19 @@ router.post("/placebid", async (req, res) => {
     await prisma.bid.create({
       data: body,
     });
+
+    if (bids.length > 0) {
+      const lastMaxBid = bids[bids.length - 1];
+      try {
+        await prisma.bid.update({
+          where: { id: lastMaxBid.id },
+          data: { status: "captured" },
+        });
+      } catch (err) {
+        res.send("error updating last max bid status");
+        return;
+      }
+    }
     res.send("Bid registered successfully");
     return;
   } catch (error) {
