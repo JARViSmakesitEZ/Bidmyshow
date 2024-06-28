@@ -3,8 +3,12 @@ import {
   showsDetailAtom,
   highlightedShowDetailAtom,
   userDetailsAtom,
+  popupStatus,
+  navLinkAtom,
 } from "../store/atoms";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function beautifyDateTime(sqlDateTime) {
   const dateObj = new Date(sqlDateTime);
@@ -51,10 +55,39 @@ function beautifyDateTime(sqlDateTime) {
 const Payment = () => {
   const highlightedShow = useRecoilValue(highlightedShowDetailAtom);
   const showDetails = useRecoilValue(showsDetailAtom);
-  const userDetails = useRecoilValue(userDetailsAtom);
+  const [userDetails, setUserDetails] = useRecoilState(userDetailsAtom);
   const { date, time } = beautifyDateTime(
     showDetails[highlightedShow].start_time
   );
+  const setPopup = useSetRecoilState(popupStatus);
+  const navigate = useNavigate();
+  const setNavVariable = useSetRecoilState(navLinkAtom);
+
+  async function processPayment(e) {
+    e.preventDefault();
+    const show_id = showDetails[highlightedShow].id;
+    const user_id = userDetails.id;
+    const res = await axios.post("http://localhost:3000/user/booking", {
+      user_id,
+      show_id,
+    });
+    console.log(res);
+    setPopup((popup) => ({
+      ...popup,
+      active: true,
+      message: res.data.message,
+      type: res.data.status === true ? "success" : "error",
+    }));
+    if (res.data.status) {
+      setUserDetails((u) => ({
+        ...u,
+        balance: u.balance - showDetails[highlightedShow].ticket_price,
+      }));
+    }
+    console.log(userDetails);
+    setNavVariable("home");
+    navigate("/home");
+  }
   return (
     <div className="bg-slate-900 flex flex-col items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center mb-4">
@@ -74,7 +107,10 @@ const Payment = () => {
           <strong>Amount to be paid:</strong> ₹
           {showDetails[highlightedShow].ticket_price}
         </p>
-        <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700">
+        <button
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+          onClick={processPayment}
+        >
           Pay Now
         </button>
       </div>

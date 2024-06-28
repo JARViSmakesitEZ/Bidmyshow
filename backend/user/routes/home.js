@@ -7,7 +7,6 @@ const secretKey = "strawberriesncream";
 const jwt = require("jsonwebtoken");
 
 router.get("/home", verifyToken, async (req, res) => {
-  console.log("hello from the home page");
   const token = req.header("authorization").split(" ")[1];
   let id;
   jwt.verify(token, secretKey, (err, decoded) => {

@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 router.get("/auctionbookings", async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
-      where: { bidding: true },
+      where: { bidding: true, status: "own" },
       include: {
         User: {
           select: {

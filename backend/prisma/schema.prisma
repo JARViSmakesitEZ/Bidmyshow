@@ -56,21 +56,30 @@ model ShowInterests {
 }
 
 
+enum BookingStatus {
+  own
+  sold
+  bidding
+}
 
 model Booking {
-  id                 Int      @id @default(autoincrement())
+  booking_id         Int      @default(autoincrement())
   show_id            Int
   user_id            Int
   bidding            Boolean? @default(false)
   amount             Int
+  status             BookingStatus @default(own)
 
   Show               Show     @relation(fields: [show_id], references: [id], name: "ShowBooked")
   User               User     @relation(fields: [user_id], references: [id], name: "UserBookings")
   Bids               Bid[]    @relation("BookingBids")
 
+  @@id([booking_id, user_id])
   @@index([show_id])
   @@index([user_id])
+  @@unique([booking_id, user_id])  // Adding unique constraint
 }
+
 
 enum BidStatus {
   pending
@@ -78,14 +87,17 @@ enum BidStatus {
   captured
 }
 
+
+
 model Bid {
   id              Int        @id @default(autoincrement())
   booking_id      Int
+  booking_user_id Int
   bidder_id       Int
   amount          Int
   status          BidStatus  @default(pending)
 
-  Booking         Booking    @relation(fields: [booking_id], references: [id], name:"BookingBids")
+  Booking         Booking    @relation(fields: [booking_id,booking_user_id], references: [booking_id,user_id], name:"BookingBids")
   User            User       @relation(fields: [bidder_id], references: [id], name:"UserBids")
 }
 

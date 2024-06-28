@@ -7,7 +7,9 @@ router.post("/placebid", async (req, res) => {
   body = req.body;
   const bidderId = body.bidder_id;
   const bookingId = body.booking_id;
+  const userId = body.user_id;
   const amount = body.amount;
+  body.amount = parseInt(body.amount);
   let bidder = null;
   let booking = null;
   let bids = null;
@@ -16,22 +18,26 @@ router.post("/placebid", async (req, res) => {
   try {
     booking = await prisma.booking.findFirst({
       where: {
-        id: bookingId,
+        booking_id: bookingId,
+        user_id: userId,
       },
     });
     if (booking.bidding === false) {
-      res.send("booking is not up for bidding.");
+      res.send({ status: false, message: "booking is not up for bidding." });
       return;
     }
   } catch (error) {
-    res.send("error fetching booking details");
+    console.log(error);
+    res.send({ status: false, message: "error fetching booking details" });
     return;
   }
-  console.log(amount);
 
   //check if the amount the bidder is bidding is greater than the amount paid for booking
   if (booking.amount >= amount) {
-    res.send("the bidding amount should be greater than the booking amount");
+    res.send({
+      status: false,
+      message: "the bidding amount should be greater than the booking amount",
+    });
     return;
   }
 
@@ -43,14 +49,17 @@ router.post("/placebid", async (req, res) => {
       },
     });
     if (bidder.balance < amount) {
-      res.send("bidder doesn't have enough balance");
+      res.send({
+        status: false,
+        message: "bidder doesn't have enough balance",
+      });
       return;
     }
   } catch (error) {
-    res.send("error fetching bidder details");
+    console.log(error);
+    res.send({ status: false, message: "error fetching bidder details" });
     return;
   }
-  console.log("bidder has enough balance.");
 
   //check if the current max bid is lesser than the bidding amount
   try {
@@ -61,7 +70,10 @@ router.post("/placebid", async (req, res) => {
     });
     bids.sort((a, b) => a.id - b.id);
     if (bids.length > 0 && bids[bids.length - 1].amount >= amount) {
-      res.send("The amount must be greater than the current max bid amount");
+      res.send({
+        status: false,
+        message: "The amount must be greater than the current max bid amount",
+      });
       return;
     } else if (bids.length === 0) {
       //check if the bidding amount is greater than the acutal ticket price
@@ -73,25 +85,36 @@ router.post("/placebid", async (req, res) => {
           },
         });
         if (show.ticket_price > amount) {
-          res.send("The amount must be greater than the ticket price");
+          res.send({
+            status: false,
+            message: "The amount must be greater than the ticket price",
+          });
           return;
         }
       } catch (error) {
-        res.send("Error fetching show details");
+        console.log(error);
+        res.send({ status: false, message: "Error fetching show details" });
         return;
       }
     }
   } catch (error) {
     console.log(error);
-    res.send("Error fetching previous bidding data for the booking");
+    res.send({
+      status: false,
+      message: "Error fetching previous bidding data for the booking",
+    });
     return;
   }
-  console.log("bidding constraints satisfied");
 
   //register the bid
   try {
     await prisma.bid.create({
-      data: body,
+      data: {
+        bidder_id: body.bidder_id,
+        booking_id: body.booking_id,
+        booking_user_id: booking.user_id,
+        amount: body.amount,
+      },
     });
 
     if (bids.length > 0) {
@@ -102,14 +125,17 @@ router.post("/placebid", async (req, res) => {
           data: { status: "captured" },
         });
       } catch (err) {
-        res.send("error updating last max bid status");
+        res.send({
+          status: false,
+          message: "error updating last max bid status",
+        });
         return;
       }
     }
-    res.send("Bid registered successfully");
+    res.send({ status: true, message: "Bid registered successfully" });
     return;
   } catch (error) {
-    res.send("Error registering the bid");
+    res.send({ status: false, message: "Error registering the bid" });
     console.log(error);
     return;
   }

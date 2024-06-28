@@ -5,11 +5,8 @@ const secretKey = "strawberriesncream";
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-console.log(secretKey);
-
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log(req.body);
 
   if (!email || !password) {
     return res
@@ -23,7 +20,6 @@ router.post("/login", async (req, res) => {
         email: email,
       },
     });
-    console.log(user);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });

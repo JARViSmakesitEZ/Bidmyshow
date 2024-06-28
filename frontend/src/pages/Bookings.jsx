@@ -2,31 +2,47 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import axios from "axios";
-import { useRecoilValue } from "recoil";
-import { userDetailsAtom } from "../store/atoms";
+import { useRecoilValue, useSetRecoilState, useRecoilState } from "recoil";
+import { userDetailsAtom, navLinkAtom } from "../store/atoms";
 import { Skeleton } from "../components/Skeleton";
+import { popupStatus } from "../store/atoms";
 
 const Bookings = () => {
   const navigate = useNavigate();
   const userDetails = useRecoilValue(userDetailsAtom);
   const [bookingsData, setBookingsData] = useState([]);
   const [biddingStatus, setBiddingStatus] = useState({});
-  const [bookingStatus, setBookingStatus] = useState("mine");
+  const [bookingStatus, setBookingStatus] = useState({});
   const [loading, setLoading] = useState(true); // New state to handle loading
+  const [navVariable, setNavVariable] = useRecoilState(navLinkAtom);
+  const setPopup = useSetRecoilState(popupStatus);
+  const token = localStorage.getItem("bidMyShowToken");
+  if (!token) {
+    throw new Error("No token found");
+  }
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/user/booking/" + userDetails.id
+          "http://localhost:3000/user/booking/" + userDetails.id,
+          {
+            headers: {
+              Authorization: `Bearer ${token.split(" ")[1]}`,
+            },
+          }
         );
         setBookingsData(response.data);
-        // Initialize the bidding status state
-        const initialBiddingStatus = response.data.reduce((acc, booking) => {
-          acc[booking.id] = booking.bidding;
-          return acc;
-        }, {});
-        setBiddingStatus(initialBiddingStatus);
+        response.data.forEach((booking) => {
+          setBiddingStatus((prevState) => ({
+            ...prevState,
+            [booking.booking_id]: booking.bidding,
+          }));
+          setBookingStatus((prevState) => ({
+            ...prevState,
+            [booking.booking_id]: booking.status, // assuming you have a status field
+          }));
+        });
       } catch (error) {
         console.error("Error fetching bookings:", error);
       } finally {
@@ -35,43 +51,78 @@ const Bookings = () => {
     };
 
     fetchBookings();
-  }, [userDetails.id]);
+  }, [navVariable]);
 
-  const f1 = async (bookingId) => {
+  const postBid = async (bookingId) => {
+    console.log("booking id: " + bookingId);
+    setLoading(true);
     try {
-      const response = await axios.post("http://localhost:3000/user/postbid", {
-        user_id: userDetails.id,
-        booking_id: bookingId,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/user/postbid",
+        {
+          user_id: userDetails.id,
+          booking_id: bookingId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token.split(" ")[1]}`,
+          },
+        }
+      );
       // Initialize the bidding status state
-      const initialBiddingStatus = response.data.reduce((acc, booking) => {
-        acc[booking.id] = booking.bidding;
-        setBookingStatus("bidding");
-        return acc;
-      }, {});
-      setBiddingStatus(initialBiddingStatus);
+      console.log(response);
+      setBiddingStatus((prevState) => ({
+        ...prevState,
+        [bookingId]: true,
+      }));
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: response.data.message,
+        type: response.data.status === true ? "success" : "error",
+      }));
+      setLoading(false);
+      setNavVariable("booking");
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }
     setBiddingStatus({ ...biddingStatus, [bookingId]: true });
   };
 
-  const f2 = async (bookingId) => {
+  const acceptBid = async (bookingId) => {
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:3000/user/acceptbid",
         {
           user_id: userDetails.id,
           booking_id: bookingId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token.split(" ")[1]}`,
+          },
         }
       );
       // Initialize the bidding status state
-      setBookingStatus("sold");
-      navigate("/bookings");
+      if (response.status) {
+        setBookingStatus((prevState) => ({
+          ...prevState,
+          [bookingId]: "sold",
+        }));
+      }
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: response.data.message,
+        type: response.data.status === true ? "success" : "error",
+      }));
+      setLoading(false);
+      setBiddingStatus({ ...biddingStatus, [bookingId]: false });
+      setNavVariable("booking");
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }
-    setBiddingStatus({ ...biddingStatus, [bookingId]: true });
   };
 
   console.log(bookingsData);
@@ -97,32 +148,39 @@ const Bookings = () => {
                         : "text-black"
                     }`}
                   >
-                    {biddingStatus[booking.id] ? "Up for Bidding" : ""}
+                    {biddingStatus[booking.booking_id] &&
+                    bookingStatus[booking.booking_id] === "own"
+                      ? "Up for Bidding"
+                      : ""}
                   </span>
-                  {biddingStatus[booking.id] && bookingStatus !== "bidding" ? (
+                  {biddingStatus[booking.booking_id] ? (
                     <div className="text-sm text-gray-700">
                       {booking.highestBidder ? (
                         <>
                           Highest Bidder: {booking.highestBidder.name} ( ₹
                           {booking.highestBidder.amount})
-                          <button
-                            className="ml-4 bg-slate-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
-                            onClick={() => f2(booking.id)}
-                          >
-                            Accept Bid
-                          </button>
+                          {bookingStatus[booking.booking_id] !== "sold" && (
+                            <button
+                              className="ml-4 bg-slate-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
+                              onClick={() => acceptBid(booking.booking_id)}
+                            >
+                              Accept Bid
+                            </button>
+                          )}
                         </>
                       ) : (
                         "No bids yet"
                       )}
                     </div>
                   ) : (
-                    <button
-                      className="ml-4 bg-red-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
-                      onClick={() => f1(booking.id)}
-                    >
-                      Post For Bidding
-                    </button>
+                    bookingStatus[booking.booking_id] !== "sold" && (
+                      <button
+                        className="ml-4 bg-red-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
+                        onClick={() => postBid(booking.booking_id)}
+                      >
+                        Post For Bidding
+                      </button>
+                    )
                   )}
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
@@ -131,7 +189,7 @@ const Bookings = () => {
                 <div className="text-gray-700">
                   Amount Paid: {booking.amount}
                 </div>
-                {booking.status === "sold" && (
+                {bookingStatus[booking.booking_id] === "sold" && (
                   <div className="text-gray-500 text-right">Sold</div>
                 )}
               </div>

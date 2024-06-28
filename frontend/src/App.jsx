@@ -6,9 +6,11 @@ import { RecoilRoot } from "recoil";
 import { Show } from "./pages/Show";
 import Profile from "./pages/Profile";
 import Bookings from "./pages/Bookings";
+import LandingPage from "./pages/LandingPage";
 import Bids from "./pages/Bids";
 import BiddingArena from "./pages/BiddingArena";
 import Payment from "./pages/Payment";
+import Popup from "./components/Popup";
 // import { Blog } from "./pages/Blog";
 // import { Blogs } from "./pages/Blogs";
 
@@ -17,7 +19,9 @@ function App() {
     <>
       <RecoilRoot>
         <BrowserRouter>
+          <Popup />
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/signin" element={<Signin />} />
             <Route path="/home" element={<Home />} />
@@ -26,18 +30,7 @@ function App() {
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/bids" element={<Bids />} />
             <Route path="/biddingarena" element={<BiddingArena />} />
-            <Route
-              path="/payment"
-              element={
-                <Payment
-                  showName="The Great Show"
-                  showTime="7:00 PM, 25th June 2024"
-                  showLocation="Downtown Theater"
-                  amount="50.00"
-                  userBalance="150.00"
-                />
-              }
-            />
+            <Route path="/payment" element={<Payment />} />
           </Routes>
         </BrowserRouter>
       </RecoilRoot>

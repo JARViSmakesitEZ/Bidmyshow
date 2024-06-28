@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "../components/Button";
 import { useNavigate } from "react-router-dom";
+import { popupStatus } from "../store/atoms";
+import { useSetRecoilState } from "recoil";
 
 export const Signup = () => {
   const [interests, setInterests] = useState([]);
@@ -9,6 +11,7 @@ export const Signup = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const setPopup = useSetRecoilState(popupStatus);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +29,8 @@ export const Signup = () => {
     fetchInterests();
   }, []);
 
-  const signupUser = async () => {
+  const signupUser = async (e) => {
+    e.preventDefault();
     try {
       const response = await axios.post("http://localhost:3000/user/register", {
         name: username,
@@ -36,10 +40,20 @@ export const Signup = () => {
         email,
       });
 
-      alert("Signup successful");
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: "signin successful",
+        type: "success",
+      }));
       navigate("/signin");
     } catch (error) {
-      alert("Error registering user");
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: "Error registering user",
+        type: "error",
+      }));
     }
   };
 

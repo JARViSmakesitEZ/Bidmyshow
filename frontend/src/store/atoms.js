@@ -34,3 +34,12 @@ export const highlightedShowDetailAtom = atom({
   key: "highlightedShowDetail",
   default: {},
 });
+
+export const popupStatus = atom({
+  key: "popupstatus",
+  default: {
+    message: "",
+    type: "",
+    active: false,
+  },
+});

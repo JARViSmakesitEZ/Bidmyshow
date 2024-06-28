@@ -3,13 +3,14 @@ import { Auth } from "../components/Auth";
 import { Quote } from "../components/Quote";
 import { useState } from "react";
 import axios from "axios";
-import { userDetailsAtom } from "../store/atoms";
-import { useRecoilState } from "recoil";
+import { userDetailsAtom, popupStatus } from "../store/atoms";
+import { useRecoilState, useSetRecoilState } from "recoil";
 
 export const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useRecoilState(userDetailsAtom);
+  const setPopup = useSetRecoilState(popupStatus);
   const navigate = useNavigate();
 
   async function signinUser(e) {
@@ -22,12 +23,20 @@ export const Signin = () => {
       const token = response.data.token;
       localStorage.setItem("bidMyShowToken", `Bearer ${token}`);
       setUser(response.data);
-      console.log(response.data);
-      alert("Signin successful");
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: "signin successful",
+        type: "success",
+      }));
       navigate("/home");
     } catch (err) {
-      // alert("error signing in the user");
-      alert(err);
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: "email or password wrong",
+        type: "error",
+      }));
     }
   }
   return (

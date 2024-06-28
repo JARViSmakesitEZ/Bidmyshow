@@ -14,7 +14,6 @@ router.get("/booking/:id", async (req, res) => {
 
     const bookingsPack = await Promise.all(
       bookings.map(async (booking) => {
-        console.log(booking);
         const show_id = booking.show_id;
         const bidding = booking.bidding;
         let show;
@@ -28,7 +27,10 @@ router.get("/booking/:id", async (req, res) => {
           if (bidding === true) {
             try {
               bids = await prisma.bid.findMany({
-                where: { booking_id: booking.id },
+                where: {
+                  booking_id: booking.booking_id,
+                  booking_user_id: booking.user_id,
+                },
               });
 
               if (bids.length === 0) {
@@ -90,25 +92,25 @@ router.post("/booking", async (req, res) => {
   const body = req.body;
   const showId = body.show_id;
   const userId = body.user_id;
-  let show = null;
-  let user = null;
 
   try {
     const result = await prisma.$transaction(async (prisma) => {
       // Check if seat available
-      show = await prisma.show.findFirst({
+      const show = await prisma.show.findFirst({
         where: { id: showId },
       });
       if (show.booked_seats === show.total_seats) {
-        throw new Error("No seats left.");
+        res.json({ message: "No seats left.", status: false });
+        throw new Error("Transaction aborted: no seats left.");
       }
 
       // Check if enough balance
-      user = await prisma.user.findFirst({
+      const user = await prisma.user.findFirst({
         where: { id: userId },
       });
       if (user.balance < show.ticket_price) {
-        throw new Error("Not Enough Balance");
+        res.json({ message: "Not Enough Balance.", status: false });
+        throw new Error("Transaction aborted: not enough balance.");
       }
 
       // Book seat
@@ -133,11 +135,19 @@ router.post("/booking", async (req, res) => {
       return booking;
     });
 
-    console.log("New Booking registered.");
-    res.status(200).send("Booking registered successfully");
+    res
+      .status(200)
+      .json({ message: "Booking registered successfully", status: true });
   } catch (error) {
-    console.error("Error registering Booking:", error.message);
-    res.status(500).send(error.message);
+    if (error.message.startsWith("Transaction aborted:")) {
+      console.log("Transaction aborted:", error.message);
+      // No need to send another response, since it's already sent
+    } else {
+      console.error("Error registering Booking:", error.message);
+      res
+        .status(500)
+        .send({ message: "Internal Server Error.", status: false });
+    }
   }
 });
 

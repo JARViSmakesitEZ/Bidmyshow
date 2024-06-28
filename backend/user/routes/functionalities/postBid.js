@@ -13,7 +13,8 @@ router.post("/postbid", async (req, res) => {
   try {
     booking = await prisma.booking.findFirst({
       where: {
-        id: bookingId,
+        booking_id: bookingId,
+        user_id: userId,
       },
     });
     if (booking.user_id !== userId) {
@@ -21,7 +22,7 @@ router.post("/postbid", async (req, res) => {
       return;
     }
   } catch (error) {
-    res.send("error fetching booking details");
+    res.send({ message: "error fetching booking details", status: false });
     return;
   }
 
@@ -30,16 +31,20 @@ router.post("/postbid", async (req, res) => {
     const biddingStatus = true;
     await prisma.booking.update({
       where: {
-        id: bookingId,
+        booking_id_user_id: {
+          booking_id: bookingId,
+          user_id: userId,
+        },
       },
       data: {
         bidding: biddingStatus,
       },
     });
-    res.send("booking status updated successfully");
+    res.send({ message: "booking status updated successfully", status: true });
     return;
   } catch (error) {
-    res.send("error updating booking status");
+    console.log(error);
+    res.send({ status: false, message: "error updating booking status" });
     return;
   }
 });

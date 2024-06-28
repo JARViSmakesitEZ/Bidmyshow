@@ -5,7 +5,6 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 router.get("/interest", async (req, res) => {
-  console.log("hi just got hit");
   try {
     interests = await prisma.interest.findMany();
     res.send(interests);

@@ -35,12 +35,23 @@ const Bids = () => {
   const userDetails = useRecoilValue(userDetailsAtom);
   const [bidsData, setBidsData] = useState([]);
   const [loading, setLoading] = useState(true); // New state to handle loading
+  console.log(userDetails.id);
   useEffect(() => {
     const fetchBids = async () => {
+      const token = localStorage.getItem("bidMyShowToken");
+      if (!token) {
+        throw new Error("No token found");
+      }
       try {
         const response = await axios.get(
-          "http://localhost:3000/common/bids/" + userDetails.id
+          "http://localhost:3000/common/bids/" + userDetails.id,
+          {
+            headers: {
+              Authorization: `Bearer ${token.split(" ")[1]}`,
+            },
+          }
         );
+        console.log(response.data);
         setBidsData(response.data);
       } catch (error) {
         console.error("Error fetching bids:", error);
@@ -50,7 +61,7 @@ const Bids = () => {
     };
 
     fetchBids();
-  }, [userDetails.id]);
+  }, []);
 
   console.log(bidsData);
   return (
@@ -65,7 +76,7 @@ const Bids = () => {
               <div key={bid.id} className="p-4 bg-white rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-2">
                   <div className="text-sm text-gray-700">
-                    Booking ID: {bid.bookingId}
+                    Booking ID: {bid.booking_id}
                   </div>
                   <div
                     className={`text-sm font-bold ${
@@ -78,9 +89,6 @@ const Bids = () => {
                   >
                     {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
                   </div>
-                </div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {bid.showName}
                 </div>
                 <div className="text-gray-700">Amount: {bid.amount}</div>
               </div>

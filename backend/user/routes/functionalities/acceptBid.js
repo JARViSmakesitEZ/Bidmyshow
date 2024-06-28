@@ -10,7 +10,7 @@ router.post("/acceptbid", async (req, res) => {
   let latestBid = null;
   let user = null;
   let bids = null;
-  let booking = null;
+  let currbooking = null;
 
   //check if the userId is valid
   try {
@@ -18,31 +18,38 @@ router.post("/acceptbid", async (req, res) => {
       where: { id: userId },
     });
   } catch (error) {
-    res.send("error fetching user details/user doesn't exist");
+    res.send({
+      status: false,
+      message: "error fetching user details/user doesn't exist",
+    });
     return;
   }
-  console.log("user id is valiid");
 
   //check if the bookingId is valid
   try {
-    booking = await prisma.booking.findFirst({
-      where: { id: bookingId },
+    currbooking = await prisma.booking.findFirst({
+      where: { booking_id: bookingId, user_id: userId },
     });
   } catch (error) {
-    res.send("error fetching booking details/booking doesn't exist");
+    res.send({
+      status: false,
+      message: "error fetching booking details/booking doesn't exist",
+    });
     return;
   }
-  console.log("booking id is valid");
 
   //check if the userId is the owner of the bookingId
-  if (booking.user_id !== userId) {
-    res.send("the user is not the owner of the booking");
+  if (currbooking == null) {
+    res.send({
+      status: false,
+      message: "the user is not the owner of the booking",
+    });
     return;
   }
 
   //check if the booking is up for bidding
-  if (booking.bidding === false) {
-    res.send("booking is not up for bidding");
+  if (currbooking.bidding === false) {
+    res.send({ status: false, message: "booking is not up for bidding" });
     return;
   }
 
@@ -51,18 +58,19 @@ router.post("/acceptbid", async (req, res) => {
     bids = await prisma.bid.findMany({
       where: {
         booking_id: bookingId,
+        booking_user_id: userId,
       },
     });
+    console.log(bids);
     bids.sort((a, b) => a.id - b.id);
     if (bids.length === 0) {
-      res.send("no bids on this booking");
+      res.send({ status: false, message: "no bids on this booking" });
       return;
     }
   } catch (error) {
-    res.send("error fetching bid data");
+    res.send({ status: true, message: "error fetching bid data" });
     return;
   }
-  console.log("there is bid on the booking");
 
   //accept the bid
   try {
@@ -81,17 +89,28 @@ router.post("/acceptbid", async (req, res) => {
         },
       });
     } catch (err) {
-      res.send("error updating the highest bid status.");
+      res.send({
+        status: false,
+        message: "error updating the highest bid status.",
+      });
       return;
     }
 
     //update the booking details
     await prisma.booking.update({
-      where: { id: bookingId },
+      where: { booking_id_user_id: { booking_id: bookingId, user_id: userId } },
       data: {
+        status: "sold",
+        bidding: false,
+      },
+    });
+
+    await prisma.booking.create({
+      data: {
+        booking_id: currbooking.booking_id,
         user_id: latestBidUserId,
         amount: latestBidAmount,
-        bidding: false,
+        show_id: currbooking.show_id,
       },
     });
 
@@ -112,7 +131,7 @@ router.post("/acceptbid", async (req, res) => {
         },
       });
     } catch (error) {
-      res.send("error updating bidder data");
+      res.send({ status: false, message: "error updating bidder data" });
       console.log(error);
       return;
     }
@@ -131,12 +150,12 @@ router.post("/acceptbid", async (req, res) => {
         },
       });
     } catch (error) {
-      res.send("error updating user details");
+      res.send({ status: false, message: "error updating user details" });
       return;
     }
-    res.send("bid accepted successfully");
+    res.send({ status: true, message: "bid accepted successfully" });
   } catch (error) {
-    res.send("error accepting the bid");
+    res.send({ status: false, message: "error accepting the bid" });
     console.log(error);
     return;
   }

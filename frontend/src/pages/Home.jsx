@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ShowCard } from "../components/ShowCard";
 import { Navbar } from "../components/Navbar";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import { userDetailsAtom, showsDetailAtom } from "../store/atoms";
+import { useRecoilValue, useSetRecoilState, useRecoilState } from "recoil";
+import { userDetailsAtom, showsDetailAtom, navLinkAtom } from "../store/atoms";
 import { Skeleton } from "../components/Skeleton";
 
 export const Home = () => {
@@ -12,6 +12,7 @@ export const Home = () => {
   const [loading, setLoading] = useState(true);
   const userDetails = useRecoilValue(userDetailsAtom);
   const setShowsDetails = useSetRecoilState(showsDetailAtom);
+  const [navVariable, setNavVariable] = useRecoilState(navLinkAtom);
   const temp = useRecoilValue(showsDetailAtom);
 
   async function saveShowDetails(shows) {
@@ -71,7 +72,7 @@ export const Home = () => {
     }
 
     fetchData();
-  }, []);
+  }, [navVariable]);
 
   return (
     <div>
@@ -85,10 +86,12 @@ export const Home = () => {
           <>
             <div className="section">
               <h2 className="text-2xl font-bold mb-4">Picked For You</h2>
-              <div className="flex flex-wrap">
+              <div className="flex flex-wrap -m-2">
                 {response.shows && response.shows.length > 0 ? (
                   shows.personalized.map((s) => (
-                    <ShowCard key={s.id} id={s.id} />
+                    <div key={s.id} className="p-2">
+                      <ShowCard id={s.id} />
+                    </div>
                   ))
                 ) : (
                   <p>No shows available</p>

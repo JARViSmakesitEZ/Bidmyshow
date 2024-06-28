@@ -10,6 +10,7 @@ router.get("/bids/:id", async (req, res) => {
     const bids = await prisma.bid.findMany({
       where: { bidder_id: id },
     });
+
     bids.sort((a, b) => a.id - b.id);
     res.send(bids);
     return;

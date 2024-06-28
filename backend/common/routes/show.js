@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 
 router.get("/show/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  console.log(id);
   try {
     let theatre;
     const show = await prisma.show.findFirst({
