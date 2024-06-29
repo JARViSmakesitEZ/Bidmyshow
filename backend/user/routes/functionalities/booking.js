@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const RESERVATION_TIME = 5000;
 
 router.get("/booking/:id", async (req, res) => {
   const id = parseInt(req.params.id);
@@ -89,9 +90,11 @@ router.get("/booking/:id", async (req, res) => {
 });
 
 router.post("/booking", async (req, res) => {
+  console.log("hi i just got hit");
   const body = req.body;
   const showId = body.show_id;
   const userId = body.user_id;
+  const now = new Date();
 
   try {
     const result = await prisma.$transaction(async (prisma) => {
@@ -99,6 +102,11 @@ router.post("/booking", async (req, res) => {
       const show = await prisma.show.findFirst({
         where: { id: showId },
       });
+      if (!show) {
+        res.status(404).json({ message: "Show not found", status: false });
+        throw new Error("Transaction aborted: show not found.");
+      }
+
       if (show.booked_seats === show.total_seats) {
         res.json({ message: "No seats left.", status: false });
         throw new Error("Transaction aborted: no seats left.");
@@ -108,31 +116,87 @@ router.post("/booking", async (req, res) => {
       const user = await prisma.user.findFirst({
         where: { id: userId },
       });
+      if (!user) {
+        res.status(404).json({ message: "User not found", status: false });
+        throw new Error("Transaction aborted: user not found.");
+      }
+
       if (user.balance < show.ticket_price) {
         res.json({ message: "Not Enough Balance.", status: false });
         throw new Error("Transaction aborted: not enough balance.");
       }
 
-      // Book seat
-      const booking = await prisma.booking.create({
-        data: { ...body, amount: show.ticket_price },
+      // Check if user already has a booking for this show with status "own"
+      const existingBooking = await prisma.booking.findFirst({
+        where: {
+          user_id: userId,
+          show_id: showId,
+          status: "own",
+        },
       });
 
-      // Update booked seats
-      const updated_booked_seats = show.booked_seats + 1;
-      await prisma.show.update({
-        where: { id: showId },
-        data: { booked_seats: updated_booked_seats },
-      });
+      if (existingBooking) {
+        res.json({
+          message: "You already have a booking for this show",
+          status: false,
+        });
+        throw new Error("Transaction aborted: duplicate booking.");
+      }
 
-      // Deduct amount from the user balance
-      const updated_userBalance = user.balance - show.ticket_price;
-      await prisma.user.update({
-        where: { id: userId },
-        data: { balance: updated_userBalance },
+      const newBookingId = show.booked_seats + 1;
+      const seat = await prisma.booking.findFirst({
+        where: { booking_id: newBookingId, user_id: userId },
       });
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + RESERVATION_TIME);
+      if (seat) {
+        if (seat.expiresAt > expiresAt) {
+          res.json({
+            message: "Some Error.Please try again later.",
+            status: false,
+          });
+          return;
+        }
+        try {
+          await prisma.booking.update({
+            where: { booking_id: newBookingId, expiresAt: { lte: now } },
+            data: { user_id: userId, expiresAt },
+          });
+        } catch (err) {
+          res.json({
+            message: "Some Error.Please try again later.",
+            status: false,
+          });
+          return;
+        }
+      } else {
+        // Book seat and assign booking ID as number of booked seats
+        const bookingId = show.booked_seats + 1;
+        const booking = await prisma.booking.create({
+          data: {
+            ...body,
+            amount: show.ticket_price,
+            booking_id: bookingId, // Assigning booking ID
+            expiresAt,
+          },
+        });
 
-      return booking;
+        // Update booked seats
+        const updated_booked_seats = show.booked_seats + 1;
+        await prisma.show.update({
+          where: { id: showId },
+          data: { booked_seats: updated_booked_seats },
+        });
+
+        // Deduct amount from the user balance
+        const updated_userBalance = user.balance - show.ticket_price;
+        await prisma.user.update({
+          where: { id: userId },
+          data: { balance: updated_userBalance },
+        });
+      }
+
+      // return booking;
     });
 
     res

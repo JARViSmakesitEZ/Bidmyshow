@@ -138,7 +138,7 @@ const Bookings = () => {
             bookingsData.map((booking) => (
               <div
                 key={booking.id}
-                className="p-4 bg-white rounded-lg shadow-md"
+                className="p-4 bg-white rounded-lg shadow-md border-4 border-slate-900" // Added border class
               >
                 <div className="flex justify-between items-center mb-2">
                   <span
@@ -175,10 +175,10 @@ const Bookings = () => {
                   ) : (
                     bookingStatus[booking.booking_id] !== "sold" && (
                       <button
-                        className="ml-4 bg-red-900 text-white py-1 px-3 rounded hover:bg-slate-700 active:bg-slate-800"
+                        className="ml-4 bg-red-900 text-white py-1 px-2 rounded hover:bg-slate-700 active:bg-slate-800"
                         onClick={() => postBid(booking.booking_id)}
                       >
-                        Post For Bidding
+                        Post Bid
                       </button>
                     )
                   )}
