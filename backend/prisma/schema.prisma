@@ -69,7 +69,8 @@ model Booking {
   bidding            Boolean? @default(false)
   amount             Int
   status             BookingStatus @default(own)
-  expiresAt         DateTime
+  expiresAt          DateTime
+  version            Int     @default(0) // Optimistic locking version
 
   Show               Show     @relation(fields: [show_id], references: [id], name: "ShowBooked")
   User               User     @relation(fields: [user_id], references: [id], name: "UserBookings")

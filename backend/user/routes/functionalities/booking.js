@@ -98,30 +98,28 @@ router.post("/booking", async (req, res) => {
 
   try {
     const result = await prisma.$transaction(async (prisma) => {
-      // Check if seat available
-      const show = await prisma.show.findFirst({
-        where: { id: showId },
-      });
-      if (!show) {
+      // Lock the show row
+      const show =
+        await prisma.$queryRaw`SELECT * FROM "Show" WHERE id = ${showId} FOR UPDATE`;
+      if (!show || show.length === 0) {
         res.status(404).json({ message: "Show not found", status: false });
         throw new Error("Transaction aborted: show not found.");
       }
 
-      if (show.booked_seats === show.total_seats) {
+      if (show[0].booked_seats === show[0].total_seats) {
         res.json({ message: "No seats left.", status: false });
         throw new Error("Transaction aborted: no seats left.");
       }
 
-      // Check if enough balance
-      const user = await prisma.user.findFirst({
-        where: { id: userId },
-      });
-      if (!user) {
+      // Lock the user row
+      const user =
+        await prisma.$queryRaw`SELECT * FROM "User" WHERE id = ${userId} FOR UPDATE`;
+      if (!user || user.length === 0) {
         res.status(404).json({ message: "User not found", status: false });
         throw new Error("Transaction aborted: user not found.");
       }
 
-      if (user.balance < show.ticket_price) {
+      if (user[0].balance < show[0].ticket_price) {
         res.json({ message: "Not Enough Balance.", status: false });
         throw new Error("Transaction aborted: not enough balance.");
       }
@@ -143,60 +141,66 @@ router.post("/booking", async (req, res) => {
         throw new Error("Transaction aborted: duplicate booking.");
       }
 
-      const newBookingId = show.booked_seats + 1;
+      const newBookingId = show[0].booked_seats + 1;
       const seat = await prisma.booking.findFirst({
         where: { booking_id: newBookingId, user_id: userId },
       });
       const now = new Date();
       const expiresAt = new Date(now.getTime() + RESERVATION_TIME);
+
       if (seat) {
         if (seat.expiresAt > expiresAt) {
           res.json({
-            message: "Some Error.Please try again later.",
+            message: "Some Error. Please try again later.",
             status: false,
           });
           return;
         }
+
         try {
           await prisma.booking.update({
-            where: { booking_id: newBookingId, expiresAt: { lte: now } },
-            data: { user_id: userId, expiresAt },
+            where: {
+              booking_id: newBookingId,
+              expiresAt: { lte: now },
+            },
+            data: {
+              user_id: userId,
+              expiresAt,
+              version: { increment: 1 },
+            },
           });
         } catch (err) {
           res.json({
-            message: "Some Error.Please try again later.",
+            message: "Some Error. Please try again later.",
             status: false,
           });
           return;
         }
       } else {
         // Book seat and assign booking ID as number of booked seats
-        const bookingId = show.booked_seats + 1;
+        const bookingId = show[0].booked_seats + 1;
         const booking = await prisma.booking.create({
           data: {
             ...body,
-            amount: show.ticket_price,
+            amount: show[0].ticket_price,
             booking_id: bookingId, // Assigning booking ID
             expiresAt,
+            version: 0, // Initial version
           },
         });
 
         // Update booked seats
-        const updated_booked_seats = show.booked_seats + 1;
         await prisma.show.update({
           where: { id: showId },
-          data: { booked_seats: updated_booked_seats },
+          data: { booked_seats: { increment: 1 } },
         });
 
         // Deduct amount from the user balance
-        const updated_userBalance = user.balance - show.ticket_price;
         await prisma.user.update({
           where: { id: userId },
-          data: { balance: updated_userBalance },
+          data: { balance: { decrement: show[0].ticket_price } },
         });
       }
-
-      // return booking;
     });
 
     res
