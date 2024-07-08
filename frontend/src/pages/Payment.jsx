@@ -69,13 +69,16 @@ const Payment = () => {
     setIsProcessing(true); // Disable button on click
 
     const show_id = showDetails[highlightedShow].id;
-    const user_id = userDetails.id;
+    const user_id = userDetails.user.id;
 
     try {
-      const res = await axios.post("http://localhost:3000/user/booking", {
-        user_id,
-        show_id,
-      });
+      const res = await axios.post(
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/booking",
+        {
+          user_id,
+          show_id,
+        }
+      );
 
       console.log(res);
       setPopup((popup) => ({
@@ -131,7 +134,7 @@ const Payment = () => {
       </div>
       <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-md text-center">
         <p className="text-xl font-bold">
-          <strong>Your Balance:</strong> ₹{userDetails.balance}
+          <strong>Your Balance:</strong> ₹{userDetails.user.balance}
         </p>
       </div>
     </div>

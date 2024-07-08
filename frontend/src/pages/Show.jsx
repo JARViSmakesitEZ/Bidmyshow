@@ -71,7 +71,8 @@ export const Show = () => {
           throw new Error("No token found");
         }
         const res = await axios.get(
-          "http://localhost:3000/common/show/" + highlightedShow,
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/common/show/" +
+            highlightedShow,
           {
             headers: {
               Authorization: `Bearer ${token.split(" ")[1]}`, // Extract the actual token
@@ -123,7 +124,7 @@ export const Show = () => {
                     Price : ₹{show.ticket_price}
                   </p>
                   <p className="text-xl font-bold mb-2">
-                    Balance : ₹{userDetails.balance}
+                    Balance : ₹{userDetails.user.balance}
                   </p>
                 </div>
                 <div className="mb-6">

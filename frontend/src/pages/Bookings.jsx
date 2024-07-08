@@ -21,11 +21,14 @@ const Bookings = () => {
     throw new Error("No token found");
   }
 
+  console.log(userDetails);
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/user/booking/" + userDetails.id,
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/booking/" +
+            userDetails.user.id,
           {
             headers: {
               Authorization: `Bearer ${token.split(" ")[1]}`,
@@ -58,9 +61,9 @@ const Bookings = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:3000/user/postbid",
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/postbid",
         {
-          user_id: userDetails.id,
+          user_id: userDetails.user.id,
           booking_id: bookingId,
         },
         {
@@ -93,9 +96,9 @@ const Bookings = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:3000/user/acceptbid",
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/acceptbid",
         {
-          user_id: userDetails.id,
+          user_id: userDetails.user.id,
           booking_id: bookingId,
         },
         {

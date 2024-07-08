@@ -28,7 +28,7 @@ const Profile = () => {
               alt="User Profile"
             />
             <h1 className="text-2xl font-semibold text-gray-900">
-              {user.name}
+              {user.user.name}
             </h1>
             <div className="w-full">
               <div className="mb-4">
@@ -42,7 +42,7 @@ const Profile = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="email"
                   type="email"
-                  value={user.email}
+                  value={user.user.email}
                   readOnly
                 />
               </div>
@@ -57,7 +57,7 @@ const Profile = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="password"
                   type="password"
-                  value={user.password}
+                  value={user.user.password}
                   readOnly
                 />
               </div>
@@ -72,7 +72,7 @@ const Profile = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="balance"
                   type="text"
-                  value={`₹${user.balance}`}
+                  value={`₹${user.user.balance}`}
                   readOnly
                 />
               </div>

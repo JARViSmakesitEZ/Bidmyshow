@@ -55,11 +55,14 @@ export const Home = () => {
           throw new Error("No token found");
         }
 
-        const res = await axios.get("http://localhost:3000/user/home", {
-          headers: {
-            Authorization: `Bearer ${token.split(" ")[1]}`,
-          },
-        });
+        const res = await axios.get(
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/home",
+          {
+            headers: {
+              Authorization: `Bearer ${token.split(" ")[1]}`,
+            },
+          }
+        );
 
         setResponse(res.data);
         splitShows(res.data.shows);
@@ -73,6 +76,8 @@ export const Home = () => {
 
     fetchData();
   }, [navVariable]);
+
+  console.log()
 
   return (
     <div>

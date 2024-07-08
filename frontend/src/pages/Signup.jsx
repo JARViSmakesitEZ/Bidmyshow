@@ -18,7 +18,7 @@ export const Signup = () => {
     const fetchInterests = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/common/interest"
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/common/interest"
         );
         setInterests(response.data);
       } catch (error) {
@@ -32,13 +32,16 @@ export const Signup = () => {
   const signupUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/user/register", {
-        name: username,
-        password,
-        interests: selectedInterests,
-        balance: 5000,
-        email,
-      });
+      const response = await axios.post(
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/register",
+        {
+          name: username,
+          password,
+          interests: selectedInterests,
+          balance: 5000,
+          email,
+        }
+      );
 
       setPopup((popup) => ({
         ...popup,

@@ -16,13 +16,17 @@ export const Signin = () => {
   async function signinUser(e) {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/user/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/login",
+        {
+          email,
+          password,
+        }
+      );
       const token = response.data.token;
       localStorage.setItem("bidMyShowToken", `Bearer ${token}`);
       setUser(response.data);
+      console.log(response);
       setPopup((popup) => ({
         ...popup,
         active: true,
@@ -95,7 +99,10 @@ export const Signin = () => {
           </button>
           <p className="text-center font-extrabold">
             Don&rsquo;t have an account?{" "}
-            <a className="text-red-500 hover:underline" href="/signup">
+            <a
+              className="text-red-500 hover:underline"
+              href="http://bidmyshow.s3-website.ap-south-1.amazonaws.com/signup"
+            >
               Sign up
             </a>
           </p>

@@ -24,7 +24,7 @@ const BiddingArena = () => {
         }
 
         const response = await axios.get(
-          "http://localhost:3000/common/auctionbookings/",
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/common/auctionbookings",
           {
             headers: {
               Authorization: `Bearer ${token.split(" ")[1]}`,
@@ -43,7 +43,16 @@ const BiddingArena = () => {
   }, [navVariable]);
 
   const handleBid = async (booking_id, user_id) => {
-    const bidder_id = userDetails.id;
+    const bidder_id = userDetails.user.id;
+    if (user_id === bidder_id) {
+      setPopup((popup) => ({
+        ...popup,
+        active: true,
+        message: "u cannot bid on your own ticket",
+        type: false,
+      }));
+      return;
+    }
     const amount = biddingAmount;
     let res = null;
     try {
@@ -52,7 +61,7 @@ const BiddingArena = () => {
         throw new Error("No token found");
       }
       res = await axios.post(
-        "http://localhost:3000/user/placebid",
+        "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/user/placebid",
         {
           bidder_id,
           booking_id,
@@ -93,7 +102,7 @@ const BiddingArena = () => {
         <div className="max-w-4xl mx-auto mt-10">
           <div className="p-4 bg-white rounded-lg shadow-md mb-6">
             <h2 className="text-2xl font-semibold text-gray-900">
-              Balance: ₹{userDetails.balance}
+              Balance: ₹{userDetails.user.balance}
             </h2>
           </div>
           <div className="space-y-6">

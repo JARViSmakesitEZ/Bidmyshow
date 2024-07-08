@@ -44,7 +44,8 @@ const Bids = () => {
       }
       try {
         const response = await axios.get(
-          "http://localhost:3000/common/bids/" + userDetails.id,
+          "https://honobackendbidmyshow.ghoshgourav9211.workers.dev/common/bids/" +
+            userDetails.user.id,
           {
             headers: {
               Authorization: `Bearer ${token.split(" ")[1]}`,
