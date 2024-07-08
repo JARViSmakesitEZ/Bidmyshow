@@ -113,6 +113,14 @@ const Bookings = () => {
           ...prevState,
           [bookingId]: "sold",
         }));
+
+        setUserDetails((u) => ({
+          ...u,
+          user: {
+            ...u.user,
+            balance: res.data.balance.balance,
+          },
+        }));
       }
       setPopup((popup) => ({
         ...popup,

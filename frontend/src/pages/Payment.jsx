@@ -91,8 +91,13 @@ const Payment = () => {
       if (res.data.status) {
         setUserDetails((u) => ({
           ...u,
-          balance: u.balance - showDetails[highlightedShow].ticket_price,
+          user: {
+            ...u.user,
+            balance: res.data.balance.balance,
+          },
         }));
+
+        console.log(userDetails);
       }
     } catch (error) {
       console.error("Error processing payment:", error);
