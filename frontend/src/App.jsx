@@ -11,8 +11,6 @@ import Bids from "./pages/Bids";
 import BiddingArena from "./pages/BiddingArena";
 import Payment from "./pages/Payment";
 import Popup from "./components/Popup";
-// import { Blog } from "./pages/Blog";
-// import { Blogs } from "./pages/Blogs";
 
 function App() {
   return (

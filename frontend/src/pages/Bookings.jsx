@@ -57,7 +57,7 @@ const Bookings = () => {
   }, [navVariable]);
 
   const postBid = async (bookingId) => {
-    console.log("booking id: " + bookingId);
+    console.log(userDetails.user.id + " " + bookingId);
     setLoading(true);
     try {
       const response = await axios.post(
