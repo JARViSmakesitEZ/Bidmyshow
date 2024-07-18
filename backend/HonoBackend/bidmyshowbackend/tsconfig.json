@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": false,
+    "lib": ["ESNext"],
+    "types": ["@cloudflare/workers-types"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  }
+}
+
+// {
+//   "compilerOptions": {
+//     "target": "esnext",
+//     "module": "esnext",
+//     "strict": true,
+//     "types": ["@cloudflare/workers-types"],
+//     "typeRoots": ["node_modules/@types", "./types"]
+//   },
+//   "include": ["src/**/*.ts"],
+//   "exclude": ["node_modules"]
+// }

@@ -155,6 +155,7 @@ router.post("/acceptbid", async (req, res) => {
     }
     res.send({ status: true, message: "bid accepted successfully" });
   } catch (error) {
+    console.log(error);
     res.send({ status: false, message: "error accepting the bid" });
     console.log(error);
     return;

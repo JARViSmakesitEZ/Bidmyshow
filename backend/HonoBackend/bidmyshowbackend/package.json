@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.16.1",
+    "@prisma/extension-accelerate": "^1.1.0",
+    "cors": "^2.8.5",
+    "hono": "^4.0.8",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.10.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240222.0",
+    "wrangler": "^3.30.1"
+  },
+  "name": "bidmyshow",
+  "description": "``` npm install npm run dev ```",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
+}

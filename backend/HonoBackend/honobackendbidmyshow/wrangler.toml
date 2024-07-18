@@ -1,0 +1,7 @@
+name = "honobackendbidmyshow"
+compatibility_date = "2023-12-01"
+
+[vars]
+DATABASE_URL="prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiN2UxMzRkMGYtNDE2Yy00MzNkLWEyMWMtNTIyZGJhYWM5YTY3IiwidGVuYW50X2lkIjoiZDQ2YWE2NTAwNmUwMjdiZmVlZTZkNDljODJiZTUyODhkZGZiOGI5OWE5YjgyYTY2N2Q1NTI4NmJlZDcwMzIwYSIsImludGVybmFsX3NlY3JldCI6IjVmY2Q3OGE5LWFiY2QtNDEwNi05NDBiLTk2M2ZhNmQ1ZDJiYyJ9.uRX4V9Dw9HV3hyorX2oemhvvYRhzmunWUMTvqWEP0dI"
+
+SECRET_KEY = "strawberriesncream"
