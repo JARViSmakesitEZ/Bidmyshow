@@ -6,31 +6,6 @@ import { useRecoilValue } from "recoil";
 import { Skeleton } from "../components/Skeleton";
 import axios from "axios";
 
-const bidsData = [
-  {
-    id: 1,
-    bookingId: "B123",
-    showName: "Concert XYZ",
-    amount: "$60.00",
-    status: "pending",
-  },
-  {
-    id: 2,
-    bookingId: "B456",
-    showName: "Theater ABC",
-    amount: "$75.00",
-    status: "captured",
-  },
-  {
-    id: 3,
-    bookingId: "B789",
-    showName: "Magic Show DEF",
-    amount: "$40.00",
-    status: "accepted",
-  },
-  // Add more bids as needed
-];
-
 const UserBids = () => {
   const userDetails = useRecoilValue(userDetailsAtom);
   const [bidsData, setBidsData] = useState([]);
@@ -52,7 +27,6 @@ const UserBids = () => {
             },
           }
         );
-        console.log(response.data);
         setBidsData(response.data);
       } catch (error) {
         console.error("Error fetching bids:", error);
@@ -64,7 +38,6 @@ const UserBids = () => {
     fetchBids();
   }, []);
 
-  console.log(bidsData);
   return (
     <div>
       <Navbar />

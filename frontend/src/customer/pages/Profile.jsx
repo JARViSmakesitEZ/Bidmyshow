@@ -4,11 +4,14 @@ import { userDetailsAtom, navLinkAtom } from "../store/atoms";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { Navbar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
+import { useState } from "react";
 
 const UserProfile = () => {
   const user = useRecoilValue(userDetailsAtom);
   console.log(user);
   const [active, setActive] = useRecoilState(navLinkAtom);
+  const [passwordVisible, setPasswordVisible] = useState(false); // State for password visibility
   const navigate = useNavigate();
   const handleClick = (page) => {
     console.log("hi i just got clicked");
@@ -46,7 +49,7 @@ const UserProfile = () => {
                   readOnly
                 />
               </div>
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"
                   htmlFor="password"
@@ -56,10 +59,17 @@ const UserProfile = () => {
                 <input
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="password"
-                  type="password"
+                  type={passwordVisible ? "text" : "password"}
                   value={user.user.password}
                   readOnly
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-700"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                >
+                  {passwordVisible ? <FaEye /> : <FaEyeSlash />}
+                </button>
               </div>
               <div className="mb-4">
                 <label

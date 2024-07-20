@@ -82,8 +82,10 @@ const UserBiddingArena = () => {
         message: res.message,
         type: res.status == true ? "success" : "error",
       }));
-      setNavVariable("biddingArena");
-      navigate("/user/home");
+      if (res.status) {
+        setNavVariable("biddingArena");
+        navigate("/user/home");
+      }
     } catch (err) {
       console.log(err);
       setPopup((popup) => ({

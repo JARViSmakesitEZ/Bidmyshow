@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Quote } from "../components/Quote";
 import { useState } from "react";
 import axios from "axios";
-import { userDetailsAtom, popupStatus } from "../../customer/store/atoms";
+import { userDetailsAtom, popupStatus } from "../store/atoms";
 import { useRecoilState, useSetRecoilState } from "recoil";
 
 export const OrgSignin = () => {

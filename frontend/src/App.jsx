@@ -16,7 +16,9 @@ import UserLandingPage from "./customer/pages/LandingPage";
 import { OrgSignin } from "./theatre/pages/Signin";
 import { OrgSignup } from "./theatre/pages/Signup";
 import { OrgHome } from "./theatre/pages/Home";
-
+import OrgProfile from "./theatre/pages/Profile";
+import { OrgShow } from "./theatre/pages/Show";
+import RegisterShow from "./theatre/pages/RegisterShow";
 function App() {
   return (
     <>
@@ -41,9 +43,10 @@ function App() {
             <Route path="/org/signup" element={<OrgSignup />} />
             <Route path="/org/signin" element={<OrgSignin />} />
             <Route path="/org/home" element={<OrgHome />} />
-            {/*<Route path="/org/show" element={<Show />} />
-            <Route path="/org/profile" element={<Profile />} />
-            <Route path="/org/bookings" element={<Bookings />} />
+            <Route path="/org/profile" element={<OrgProfile />} />
+            <Route path="/org/show" element={<OrgShow />} />
+            <Route path="/org/registershow" element={<RegisterShow />} />
+            {/*<Route path="/org/bookings" element={<Bookings />} />
             <Route path="/org/bids" element={<Bids />} />
             <Route path="/org/biddingarena" element={<BiddingArena />} />
             <Route path="/org/payment" element={<Payment />} /> */}

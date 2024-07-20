@@ -19,7 +19,7 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     setActive("");
-    navigate("/user/signin", { replace: true }); // replace: true prevents going back
+    navigate("/", { replace: true }); // replace: true prevents going back
   };
 
   return (
