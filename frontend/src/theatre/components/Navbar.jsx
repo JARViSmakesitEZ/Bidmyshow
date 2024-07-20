@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { navLinkAtom } from "../store/atoms";
 import { useRecoilState } from "recoil";
 import { useNavigate } from "react-router-dom";
@@ -6,10 +6,12 @@ import Logo from "../../assets/logo.png";
 
 export const Navbar = () => {
   const [active, setActive] = useRecoilState(navLinkAtom);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleClick = (page) => {
     setActive(page);
+    setIsMenuOpen(false); // Close the menu when an item is clicked
     if (page === "Home") navigate("/org/home");
     else if (page === "RegisterShow") navigate("/org/registershow");
     else if (page === "Account") navigate("/org/profile");
@@ -42,7 +44,8 @@ export const Navbar = () => {
             type="button"
             className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
             aria-controls="navbar-search"
-            aria-expanded="false"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <span className="sr-only">Open main menu</span>
             <svg
@@ -63,7 +66,9 @@ export const Navbar = () => {
           </button>
         </div>
         <div
-          className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
+          className={`${
+            isMenuOpen ? "block" : "hidden"
+          } items-center justify-between w-full md:flex md:w-auto md:order-1`}
           id="navbar-search"
         >
           <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
@@ -85,7 +90,7 @@ export const Navbar = () => {
                 href="#"
                 onClick={() => handleClick("RegisterShow")}
                 className={`block py-2 px-3 rounded md:p-0 ${
-                  active === "Bookings"
+                  active === "RegisterShow"
                     ? "text-blue-700"
                     : "text-gray-900 dark:text-white"
                 }`}
@@ -93,7 +98,6 @@ export const Navbar = () => {
                 RegisterShow
               </a>
             </li>
-
             <li>
               <a
                 href="#"
