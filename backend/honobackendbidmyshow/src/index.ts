@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign, verify } from "hono/jwt";
 import { cors } from "hono/cors";
+import WebSocket from "ws";
 
 const app = new Hono<{
   Bindings: {
@@ -584,7 +585,6 @@ app.post("/user/register", async (c) => {
 });
 
 app.get("/user/booking/:id", async (c) => {
-  //works
   const prisma = new PrismaClient({
     datasources: {
       db: {
@@ -598,67 +598,77 @@ app.get("/user/booking/:id", async (c) => {
     return c.json({ message: "Invalid user ID", status: false });
   }
 
-  try {
-    const bookings = await prisma.booking.findMany({
-      where: { user_id: id },
-    });
+  const waitForData = async () => {
+    try {
+      const bookings = await prisma.booking.findMany({
+        where: { user_id: id },
+      });
 
-    const bookingsPack = await Promise.all(
-      bookings.map(async (booking) => {
-        const show = await prisma.show.findFirst({
-          where: { id: booking.show_id },
-        });
-
-        if (booking.bidding) {
-          const bids = await prisma.bid.findMany({
-            where: {
-              booking_id: booking.booking_id,
-              booking_user_id: booking.user_id,
-            },
-            orderBy: { id: "desc" },
+      const bookingsPack = await Promise.all(
+        bookings.map(async (booking) => {
+          const show = await prisma.show.findFirst({
+            where: { id: booking.show_id },
           });
 
-          if (bids.length === 0) {
+          if (booking.bidding) {
+            const bids = await prisma.bid.findMany({
+              where: {
+                booking_id: booking.booking_id,
+                booking_user_id: booking.user_id,
+              },
+              orderBy: { id: "desc" },
+            });
+
+            if (bids.length === 0) {
+              return {
+                ...booking,
+                showname: show.name,
+                highestBidder: null,
+              };
+            }
+
+            const latestBid = bids[0];
+            const bidder = await prisma.user.findFirst({
+              where: { id: latestBid.bidder_id },
+            });
+
+            return {
+              ...booking,
+              showname: show.name,
+              highestBidder: {
+                name: bidder.name,
+                amount: latestBid.amount,
+              },
+            };
+          } else {
             return {
               ...booking,
               showname: show.name,
               highestBidder: null,
             };
           }
+        })
+      );
 
-          const latestBid = bids[0];
-          const bidder = await prisma.user.findFirst({
-            where: { id: latestBid.bidder_id },
-          });
+      if (bookingsPack.length > 0) {
+        return c.json(bookingsPack);
+      } else {
+        // No new data, wait for a while before trying again
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        return await waitForData(); // Recursively call waitForData
+      }
+    } catch (err) {
+      console.error("Error fetching booking details of the user:", err);
+      return c.json({
+        message: "Error fetching booking details of the user.",
+        status: false,
+      });
+    } finally {
+      await prisma.$disconnect();
+    }
+  };
 
-          return {
-            ...booking,
-            showname: show.name,
-            highestBidder: {
-              name: bidder.name,
-              amount: latestBid.amount,
-            },
-          };
-        } else {
-          return {
-            ...booking,
-            showname: show.name,
-            highestBidder: null,
-          };
-        }
-      })
-    );
-
-    return c.json(bookingsPack);
-  } catch (err) {
-    console.error("Error fetching booking details of the user:", err);
-    return c.json({
-      message: "Error fetching booking details of the user.",
-      status: false,
-    });
-  } finally {
-    await prisma.$disconnect();
-  }
+  return await waitForData(); // Start the long polling process
 });
 
 app.post("/user/booking", async (c) => {

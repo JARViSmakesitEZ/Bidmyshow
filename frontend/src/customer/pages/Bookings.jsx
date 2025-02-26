@@ -35,6 +35,7 @@ const UserBookings = () => {
             },
           }
         );
+
         setBookingsData(response.data);
         response.data.forEach((booking) => {
           setBiddingStatus((prevState) => ({
@@ -46,8 +47,12 @@ const UserBookings = () => {
             [booking.booking_id]: booking.status, // assuming you have a status field
           }));
         });
+
+        // Immediately call fetchBookings again for long polling
+        fetchBookings();
       } catch (error) {
         console.error("Error fetching bookings:", error);
+        setTimeout(fetchBookings, 5000); // Retry after 5 seconds on error
       } finally {
         setLoading(false); // Set loading to false after data is fetched
       }
